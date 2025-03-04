@@ -17,19 +17,17 @@ public static class BlogService
         return comments;
         
     }
-     
+    
     public static async Task<IList<PostSortByLastCommentDate>> PostsOrderedByLastCommentDate(MyDbContext context)
     { 
-        return await context.BlogPosts
+        var posts = await context.BlogPosts
             .Where(p => p.Comments.Any()) 
-            .Select(p => new 
-            { 
-                PostTitle = p.Title, 
-                LastComment = p.Comments.OrderByDescending(c => c.CreatedDate).FirstOrDefault()
-            })
-            .OrderByDescending(p => p.LastComment.CreatedDate)
-            .Select(p => new PostSortByLastCommentDate(p.PostTitle, p.LastComment.CreatedDate, p.LastComment.Text))
+            .Select(p => new PostSortByLastCommentDate(
+                p.Title, 
+                p.Comments.OrderByDescending(c => c.CreatedDate).FirstOrDefault().CreatedDate,
+                p.Comments.OrderByDescending(c => c.CreatedDate).FirstOrDefault().Text))
             .ToListAsync();
+        return posts.OrderByDescending(p => p.LastCommentCreatedDate).ToList();
     }
 
     public static async Task<IList<UserLastCommentsCount>> NumberOfLastCommentsLeftByUser(MyDbContext context)
